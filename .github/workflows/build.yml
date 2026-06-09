@@ -11,45 +11,53 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          submodules: recursive
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc bison ccache cpio flex kmod libelf-dev libssl-dev python3 python3-pip rsync zip zstd
+          sudo apt-get install -y bc bison cpio flex kmod libelf-dev libssl-dev python3 python3-pip rsync zip zstd
 
-      - name: Download Neutron-Clang toolchain
+      - name: Setup AOSP Clang
         run: |
           mkdir -p toolchain
-          wget -q https://github.com/Neutron-Toolchains/antman/raw/main/antman
-          chmod +x antman
-          ./antman -S=05012024
-          ./antman --patch=glibc
-
-      - name: Set up ccache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: kernel-${{ github.sha }}
+          cd toolchain
+          wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/master/clang-r522817.tar.gz
+          tar -xf clang-r522817.tar.gz 2>/dev/null
+          rm -f clang-r522817.tar.gz
+          cd ..
+          echo "PATH=$(pwd)/toolchain/bin:$PATH" >> $GITHUB_ENV
+          echo "CC=clang" >> $GITHUB_ENV
+          echo "LD=ld.lld" >> $GITHUB_ENV
 
       - name: Build kernel
         run: |
-          export PATH="$(pwd)/toolchain/neutron-clang/bin:$PATH"
+          export PATH="$(pwd)/toolchain/bin:$PATH"
           export ARCH=arm64
           export LLVM=1
           export LLVM_IAS=1
+          export CC=clang
+          export LD=ld.lld
+          export AR=llvm-ar
+          export NM=llvm-nm
+          export OBJCOPY=llvm-objcopy
+          export OBJDUMP=llvm-objdump
+          export STRIP=llvm-strip
           make ARCH=arm64 exynos850-a21snsxx_defconfig
           make -j$(nproc) ARCH=arm64 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip 2>&1 | tee build.log
 
       - name: Package AnyKernel3 zip
         run: |
           git clone --depth=1 https://github.com/Kernel-SU/AnyKernel3 -b master anykernel
-          cp arch/arm64/boot/Image anykernel/ 2>/dev/null || true
-          cp arch/arm64/boot/dts/exynos/*.dtb anykernel/dtb 2>/dev/null || true
+          cp arch/arm64/boot/Image anykernel/ 2>/dev/null || echo "No Image found"
+          find arch/arm64/boot/dts -name "*.dtb" -exec cat {} + > anykernel/dtb 2>/dev/null || echo "No dtb found"
           cp build.log anykernel/ 2>/dev/null || true
           cd anykernel
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
           sed -i 's/do.modules=1/do.modules=0/g' anykernel.sh
           sed -i 's/do.cleanup=1/do.cleanup=0/g' anykernel.sh
           zip -r9 ../atlas-mod-kernel-$(date +%Y%m%d-%H%M).zip * -x .git README.md
+          cd ..
 
       - name: Upload zip
         uses: actions/upload-artifact@v4
