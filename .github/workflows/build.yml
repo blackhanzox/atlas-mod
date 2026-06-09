@@ -51,8 +51,8 @@ jobs:
           cp vmlinux out/ 2>/dev/null || true
           cp System.map out/ 2>/dev/null || true
           cp build.log out/ 2>/dev/null || true
-          echo "KALLSYMS enabled: \$(grep CONFIG_KALLSYMS .config)" >> out/build-info.txt
-          echo "Build date: \$(date)" >> out/build-info.txt
+          echo "KALLSYMS enabled: $(grep CONFIG_KALLSYMS .config)" >> out/build-info.txt
+          echo "Build date: $(date)" >> out/build-info.txt
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
