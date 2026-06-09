@@ -1,10 +1,6 @@
 name: Build Kernel
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
   workflow_dispatch:
 
 jobs:
@@ -21,7 +17,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y bc bison ccache cpio flex kmod libelf-dev libssl-dev python3 python3-pip rsync zip zstd
 
-      - name: Download toolchain
+      - name: Download Neutron-Clang toolchain
         run: |
           mkdir -p toolchain
           wget -q https://github.com/Neutron-Toolchains/antman/raw/main/antman
@@ -43,19 +39,20 @@ jobs:
           make ARCH=arm64 exynos850-a21snsxx_defconfig
           make -j$(nproc) ARCH=arm64 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip 2>&1 | tee build.log
 
-      - name: Package artifacts
+      - name: Package AnyKernel3 zip
         run: |
-          mkdir -p out
-          cp arch/arm64/boot/Image out/ 2>/dev/null || true
-          cp arch/arm64/boot/dts/exynos/*.dtb out/ 2>/dev/null || true
-          cp vmlinux out/ 2>/dev/null || true
-          cp System.map out/ 2>/dev/null || true
-          cp build.log out/ 2>/dev/null || true
-          echo "KALLSYMS enabled: $(grep CONFIG_KALLSYMS .config)" >> out/build-info.txt
-          echo "Build date: $(date)" >> out/build-info.txt
+          git clone --depth=1 https://github.com/Kernel-SU/AnyKernel3 -b master anykernel
+          cp arch/arm64/boot/Image anykernel/ 2>/dev/null || true
+          cp arch/arm64/boot/dts/exynos/*.dtb anykernel/dtb 2>/dev/null || true
+          cp build.log anykernel/ 2>/dev/null || true
+          cd anykernel
+          sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
+          sed -i 's/do.modules=1/do.modules=0/g' anykernel.sh
+          sed -i 's/do.cleanup=1/do.cleanup=0/g' anykernel.sh
+          zip -r9 ../atlas-mod-kernel-$(date +%Y%m%d-%H%M).zip * -x .git README.md
 
-      - name: Upload artifacts
+      - name: Upload zip
         uses: actions/upload-artifact@v4
         with:
-          name: kernel-artifacts
-          path: out/
+          name: atlas-mod-kernel
+          path: ./*.zip
