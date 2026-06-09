@@ -16,7 +16,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc bison cpio flex kmod libelf-dev libssl-dev python3 python3-pip rsync zip zstd
+          sudo apt-get install -y bc bison cpio flex kmod libelf-dev libssl-dev python3 python3-pip rsync zip zstd ccache binutils-aarch64-linux-gnu
 
       - name: Setup AOSP Clang
         run: |
@@ -29,19 +29,16 @@ jobs:
 
       - name: Build kernel
         run: |
-          # Limpieza total
-          make mrproper
-          unset CCACHE_DISABLE
-          unset CC
-          unset CCACHE_DIR
-
-          export PATH="$(pwd)/toolchain/bin:$PATH"
+          sudo apt-get install -y ccache binutils-aarch64-linux-gnu
+          export PATH="/usr/lib/ccache:$(pwd)/toolchain/bin:$PATH"
+          export CCACHE_DIR="$HOME/.ccache"
+          ccache -M 2G
           export ARCH=arm64
           export LLVM=1
           export LLVM_IAS=1
-
-          make ARCH=arm64 exynos850-a21snsxx_defconfig HOSTCC=clang
-          make -j$(nproc) ARCH=arm64 HOSTCC=clang CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip 2>&1 | tee build.log
+          make mrproper 2>/dev/null || true
+          make ARCH=arm64 exynos850-a21snsxx_defconfig
+          make -j$(nproc) ARCH=arm64 2>&1 | tee build.log
 
       - name: Package AnyKernel3 zip
         run: |
