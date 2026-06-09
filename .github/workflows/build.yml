@@ -29,13 +29,19 @@ jobs:
 
       - name: Build kernel
         run: |
+          # Limpieza total
+          make mrproper
+          unset CCACHE_DISABLE
           unset CC
+          unset CCACHE_DIR
+
           export PATH="$(pwd)/toolchain/bin:$PATH"
           export ARCH=arm64
           export LLVM=1
           export LLVM_IAS=1
-          make ARCH=arm64 exynos850-a21snsxx_defconfig
-          make -j$(nproc) ARCH=arm64             CC=clang             LD=ld.lld             AR=llvm-ar             NM=llvm-nm             OBJCOPY=llvm-objcopy             OBJDUMP=llvm-objdump             STRIP=llvm-strip             2>&1 | tee build.log
+
+          make ARCH=arm64 exynos850-a21snsxx_defconfig HOSTCC=clang
+          make -j$(nproc) ARCH=arm64 HOSTCC=clang CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip 2>&1 | tee build.log
 
       - name: Package AnyKernel3 zip
         run: |
