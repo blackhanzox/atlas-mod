@@ -26,25 +26,16 @@ jobs:
           tar -xf clang-r522817.tar.gz 2>/dev/null
           rm -f clang-r522817.tar.gz
           cd ..
-          echo "PATH=$(pwd)/toolchain/bin:$PATH" >> $GITHUB_ENV
-          echo "CC=clang" >> $GITHUB_ENV
-          echo "LD=ld.lld" >> $GITHUB_ENV
 
       - name: Build kernel
         run: |
+          unset CC
           export PATH="$(pwd)/toolchain/bin:$PATH"
           export ARCH=arm64
           export LLVM=1
           export LLVM_IAS=1
-          export CC=clang
-          export LD=ld.lld
-          export AR=llvm-ar
-          export NM=llvm-nm
-          export OBJCOPY=llvm-objcopy
-          export OBJDUMP=llvm-objdump
-          export STRIP=llvm-strip
           make ARCH=arm64 exynos850-a21snsxx_defconfig
-          make -j$(nproc) ARCH=arm64 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip 2>&1 | tee build.log
+          make -j$(nproc) ARCH=arm64             CC=clang             LD=ld.lld             AR=llvm-ar             NM=llvm-nm             OBJCOPY=llvm-objcopy             OBJDUMP=llvm-objdump             STRIP=llvm-strip             2>&1 | tee build.log
 
       - name: Package AnyKernel3 zip
         run: |
