@@ -15,7 +15,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc bison cpio flex kmod libelf-dev libssl-dev python3 python3-pip rsync zip zstd ccache binutils-aarch64-linux-gnu
+          sudo apt-get install -y bc bison cpio flex kmod libelf-dev libssl-dev python3 python3-pip rsync zip zstd ccache binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu
 
       - name: Setup AOSP Clang
         run: |
@@ -35,9 +35,18 @@ jobs:
           export ARCH=arm64
           export LLVM=1
           export LLVM_IAS=1
-          make mrproper 2>/dev/null || true
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          make mrproper
           make ARCH=arm64 exynos850-a21snsxx_defconfig
           make -j$(nproc) ARCH=arm64 2>&1 | tee build.log
+
+      - name: Verify KALLSYMS
+        run: |
+          echo "=== .config ==="
+          grep "CONFIG_KALLSYMS" .config
+          echo ""
+          echo "=== Verificando Image ==="
+          strings arch/arm64/boot/Image | grep -q "kallsyms_lookup" && echo "✅ KALLSYMS ACTIVO" || echo "❌ KALLSYMS NO ENCONTRADO"
 
       - name: Package flashable zip
         run: |
@@ -51,11 +60,11 @@ jobs:
           sed -i 's/do.cleanup=1/do.cleanup=0/g' anykernel.sh
           sed -i 's|block=/dev/block/bootdevice/by-name/boot|block=/dev/block/mmcblk0p18|g' anykernel.sh
           sed -i 's|ash anykernel.sh|sh anykernel.sh|g' tools/ak3-core.sh
-          zip -r9 ../atlas-mod-kernel-$(date +%Y%m%d-%H%M).zip * -x .git README.md
+          zip -r9 ../kernel-$(date +%Y%m%d-%H%M).zip * -x .git README.md
           cd ..
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: atlas-mod-kernel
+          name: kernel
           path: ./*.zip
