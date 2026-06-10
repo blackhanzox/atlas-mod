@@ -7,8 +7,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
@@ -25,11 +24,11 @@ jobs:
           wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/master/clang-r522817.tar.gz
           tar -xf clang-r522817.tar.gz 2>/dev/null
           rm -f clang-r522817.tar.gz
+          ls -la bin/
           cd ..
 
       - name: Build kernel
         run: |
-          sudo apt-get install -y ccache binutils-aarch64-linux-gnu
           export PATH="/usr/lib/ccache:$(pwd)/toolchain/bin:$PATH"
           export CCACHE_DIR="$HOME/.ccache"
           ccache -M 2G
@@ -40,12 +39,12 @@ jobs:
           make ARCH=arm64 exynos850-a21snsxx_defconfig
           make -j$(nproc) ARCH=arm64 2>&1 | tee build.log
 
-      - name: Package AnyKernel3 zip
+      - name: Package flashable zip
         run: |
           git clone --depth=1 https://github.com/osm0sis/AnyKernel3 anykernel
-          cp arch/arm64/boot/Image anykernel/ 2>/dev/null || echo "No Image found"
-          find arch/arm64/boot/dts -name "*.dtb" -exec cat {} + > anykernel/dtb 2>/dev/null || echo "No dtb found"
-          cp build.log anykernel/ 2>/dev/null || true
+          cp arch/arm64/boot/Image anykernel/
+          find arch/arm64/boot/dts -name "*.dtb" -exec cat {} + > anykernel/dtb 2>/dev/null
+          cp build.log anykernel/
           cd anykernel
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
           sed -i 's/do.modules=1/do.modules=0/g' anykernel.sh
@@ -55,7 +54,7 @@ jobs:
           zip -r9 ../atlas-mod-kernel-$(date +%Y%m%d-%H%M).zip * -x .git README.md
           cd ..
 
-      - name: Upload zip
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: atlas-mod-kernel
