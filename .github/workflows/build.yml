@@ -49,7 +49,7 @@ jobs:
           sed -i 's|ash anykernel.sh|sh anykernel.sh|g' tools/ak3-core.sh
           rm -f anykernel.sh
           echo 'properties() {' > anykernel.sh
-          echo 'kernel.string=Atlas Kernel by DaemonMCR (@thomas_turner36)' >> anykernel.sh
+          echo 'kernel.string=Atlas Kernel by BlackHanzoX (@BlackHanzoX)' >> anykernel.sh
           echo 'do.devicecheck=1' >> anykernel.sh
           echo 'do.modules=0' >> anykernel.sh
           echo 'do.systemless=1' >> anykernel.sh
