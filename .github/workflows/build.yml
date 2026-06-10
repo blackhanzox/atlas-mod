@@ -41,7 +41,8 @@ jobs:
       - name: Package flashable zip
         run: |
           git clone --depth=1 https://github.com/osm0sis/AnyKernel3 anykernel
-          cp arch/arm64/boot/Image anykernel/
+          gzip -9 arch/arm64/boot/Image
+          cp arch/arm64/boot/Image.gz anykernel/
           find arch/arm64/boot/dts -name "*.dtb" -exec cat {} + > anykernel/dtb 2>/dev/null
           cp build.log anykernel/
           cd anykernel
