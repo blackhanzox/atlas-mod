@@ -49,14 +49,15 @@ jobs:
           sed -i 's|ash anykernel.sh|sh anykernel.sh|g' tools/ak3-core.sh
           rm -f anykernel.sh
           echo 'properties() {' > anykernel.sh
-          echo "kernel.string=Atlas Kernel" >> anykernel.sh
-          echo 'do.devicecheck=0' >> anykernel.sh
+          echo 'kernel.string=Atlas Kernel by DaemonMCR (@thomas_turner36)' >> anykernel.sh
+          echo 'do.devicecheck=1' >> anykernel.sh
           echo 'do.modules=0' >> anykernel.sh
-          echo 'do.systemless=0' >> anykernel.sh
+          echo 'do.systemless=1' >> anykernel.sh
           echo 'do.cleanup=1' >> anykernel.sh
           echo 'do.cleanuponabort=0' >> anykernel.sh
+          echo 'device.name1=a21s' >> anykernel.sh
           echo "'; }" >> anykernel.sh
-          echo 'BLOCK=/dev/block/mmcblk0p18;' >> anykernel.sh
+          echo 'BLOCK=/dev/block/by-name/boot;' >> anykernel.sh
           echo 'IS_SLOT_DEVICE=0;' >> anykernel.sh
           echo 'RAMDISK_COMPRESSION=auto;' >> anykernel.sh
           echo 'PATCH_VBMETA_FLAG=auto;' >> anykernel.sh
