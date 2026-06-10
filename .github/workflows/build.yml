@@ -47,23 +47,22 @@ jobs:
           cp build.log anykernel/
           cd anykernel
           sed -i 's|ash anykernel.sh|sh anykernel.sh|g' tools/ak3-core.sh
-          cat > anykernel.sh << 'EOF'
-properties() { '
-kernel.string=Atlas Kernel
-do.devicecheck=0
-do.modules=0
-do.systemless=0
-do.cleanup=1
-do.cleanuponabort=0
-'; }
-BLOCK=/dev/block/mmcblk0p18;
-IS_SLOT_DEVICE=0;
-RAMDISK_COMPRESSION=auto;
-PATCH_VBMETA_FLAG=auto;
-. tools/ak3-core.sh;
-split_boot;
-flash_boot;
-EOF
+          rm -f anykernel.sh
+          echo 'properties() {' > anykernel.sh
+          echo "kernel.string=Atlas Kernel" >> anykernel.sh
+          echo 'do.devicecheck=0' >> anykernel.sh
+          echo 'do.modules=0' >> anykernel.sh
+          echo 'do.systemless=0' >> anykernel.sh
+          echo 'do.cleanup=1' >> anykernel.sh
+          echo 'do.cleanuponabort=0' >> anykernel.sh
+          echo "'; }" >> anykernel.sh
+          echo 'BLOCK=/dev/block/mmcblk0p18;' >> anykernel.sh
+          echo 'IS_SLOT_DEVICE=0;' >> anykernel.sh
+          echo 'RAMDISK_COMPRESSION=auto;' >> anykernel.sh
+          echo 'PATCH_VBMETA_FLAG=auto;' >> anykernel.sh
+          echo '. tools/ak3-core.sh;' >> anykernel.sh
+          echo 'split_boot;' >> anykernel.sh
+          echo 'flash_boot;' >> anykernel.sh
           rm -f ramdisk/placeholder patch/placeholder modules/system/lib/modules/placeholder
           zip -r9 ../atlas-mod-kernel-$(date +%Y%m%d-%H%M).zip * -x .git README.md
           cd ..
