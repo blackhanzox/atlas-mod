@@ -42,7 +42,7 @@ jobs:
 
       - name: Package AnyKernel3 zip
         run: |
-          git clone --depth=1 https://github.com/Kernel-SU/AnyKernel3 -b master anykernel
+          git clone --depth=1 https://github.com/osm0sis/AnyKernel3 anykernel
           cp arch/arm64/boot/Image anykernel/ 2>/dev/null || echo "No Image found"
           find arch/arm64/boot/dts -name "*.dtb" -exec cat {} + > anykernel/dtb 2>/dev/null || echo "No dtb found"
           cp build.log anykernel/ 2>/dev/null || true
@@ -50,6 +50,8 @@ jobs:
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
           sed -i 's/do.modules=1/do.modules=0/g' anykernel.sh
           sed -i 's/do.cleanup=1/do.cleanup=0/g' anykernel.sh
+          sed -i 's/do.cleanup=1/do.cleanup=0/g' anykernel.sh
+          sed -i 's/block=\/dev\/block\/bootdevice\/by-name\/boot/block=\/dev\/block\/mmcblk0p18/g' anykernel.sh
           zip -r9 ../atlas-mod-kernel-$(date +%Y%m%d-%H%M).zip * -x .git README.md
           cd ..
 
