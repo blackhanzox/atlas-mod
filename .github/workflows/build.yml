@@ -50,8 +50,8 @@ jobs:
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
           sed -i 's/do.modules=1/do.modules=0/g' anykernel.sh
           sed -i 's/do.cleanup=1/do.cleanup=0/g' anykernel.sh
-          sed -i 's/do.cleanup=1/do.cleanup=0/g' anykernel.sh
-          sed -i 's/block=\/dev\/block\/bootdevice\/by-name\/boot/block=\/dev\/block\/mmcblk0p18/g' anykernel.sh
+          sed -i 's|block=/dev/block/bootdevice/by-name/boot|block=/dev/block/mmcblk0p18|g' anykernel.sh
+          sed -i 's|ash anykernel.sh|sh anykernel.sh|g' tools/ak3-core.sh
           zip -r9 ../atlas-mod-kernel-$(date +%Y%m%d-%H%M).zip * -x .git README.md
           cd ..
 
